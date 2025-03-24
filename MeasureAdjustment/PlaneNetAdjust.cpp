@@ -88,8 +88,9 @@ void CPlaneNetAdjust::InputData(char* file)
 {
     FILE* fp;
     if ((fp = fopen(file, "r")) == NULL) {
-        MyBreak("无法打开原始数据文件！");
-        exit(0);
+        throw(std::string("无法打开原始数据文件！"));
+        // MyBreak("无法打开原始数据文件！");
+        // exit(0);
     }
 
     fscanf(fp, "%d%d%d%d", &m_Pnumber, // 总点数
@@ -165,8 +166,9 @@ void CPlaneNetAdjust::InputData(char* file)
             int ni; // ni: 测站方向数
             fscanf(fp, "%s%d", name, &ni);
             if (ni < 1) {
-                MyBreak("\n数据文件错误：方向数小于1!");
-                exit(0);
+                throw(std::string("\n数据文件错误：方向数小于1!"));
+                // MyBreak("\n数据文件错误：方向数小于1!");
+                // exit(0);
             }
 
             dir1[i] = GetStationNumber(name);
@@ -202,7 +204,9 @@ void CPlaneNetAdjust::InputData(char* file)
         T_L[i] = dms_rad(T_L[i]);
     }
 
-    fclose(fp);
+    if (resultfp != nullptr) {
+        fclose(resultfp);
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -361,7 +365,7 @@ void CPlaneNetAdjust::ca_xy0()
             for (i = 0; i < m_Pnumber; i++)
                 if (XY[2 * i] > 1.0e29)
                     printf("\n%s", Pname[i]);
-            exit(0);
+            // exit(0);
             _getch();
         }
     }
@@ -763,8 +767,11 @@ double CPlaneNetAdjust::ca_dX()
     int t = 2 * m_Pnumber + m_Lnumber; // 未知数个数
     if (!inverse(ATPA, t)) // 法方程系数矩阵求逆
     {
-        MyBreak("调用ca_dX函数出错：法方程系数阵不满秩！");
-        fclose(resultfp);
+        throw(std::string("调用ca_dX函数出错：法方程系数阵不满秩！"));
+        // MyBreak("调用ca_dX函数出错：法方程系数阵不满秩！");
+        if (resultfp != nullptr) {
+            fclose(resultfp);
+        }
     }
 
     double max = 0.0; // 坐标改正数的最大值
@@ -1206,9 +1213,12 @@ double* CPlaneNetAdjust::ca_GT(char* file)
     } else {
         FILE* fp = fopen(file, "r");
         if (fp == NULL) {
-            MyBreak("拟稳点名文件打不开:%s", file);
-            fclose(resultfp);
-            exit(0);
+            throw(std::string("拟稳点名文件打不开"));
+            // MyBreak("拟稳点名文件打不开:%s", file);
+            if (resultfp != nullptr) {
+                fclose(resultfp);
+            }
+            // exit(0);
         }
 
         for (int i = 0; i < m_Pnumber; i++) {
@@ -1217,9 +1227,12 @@ double* CPlaneNetAdjust::ca_GT(char* file)
 
         fscanf(fp, "%d", &m_StableNumber); // 拟稳点总数
         if (m_StableNumber < 2) {
-            MyBreak(" 拟稳点总数小于2！");
-            fclose(resultfp);
-            exit(0);
+            throw(std::string("拟稳点总数小于2！"));
+            // MyBreak(" 拟稳点总数小于2！");
+            if (resultfp != nullptr) {
+                fclose(resultfp);
+            }
+            // exit(0);
         }
 
         for (int i = 0; i < m_StableNumber; i++) {
@@ -1227,13 +1240,18 @@ double* CPlaneNetAdjust::ca_GT(char* file)
             fscanf(fp, "%s", buf);
             int k = GetStationNumber(buf);
             if (k < 0) {
-                MyBreak("拟稳点名表文件中存在错误点名!");
-                fclose(resultfp);
-                exit(0);
+                throw(std::string("拟稳点名表文件中存在错误点名!"));
+                // MyBreak("拟稳点名表文件中存在错误点名!");
+                if (resultfp != nullptr) {
+                    fclose(resultfp);
+                }
+                // exit(0);
             }
             IsStable[k] = true;
         }
-        fclose(fp);
+        if (resultfp != nullptr) {
+            fclose(resultfp);
+        }
     }
 
     int t = m_Lnumber + 2 * m_Pnumber;

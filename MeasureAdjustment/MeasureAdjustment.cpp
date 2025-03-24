@@ -83,7 +83,6 @@ int LevelAD(const int Lnumber, const int Pnumber, const int knPnumber, const dou
         m1[i] = sqrt(qii + qjj - 2.0 * qij) * mu;
         V[i] = lvad.V[i];
     }
-
     return 1;
 }
 

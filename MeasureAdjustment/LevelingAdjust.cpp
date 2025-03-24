@@ -1,17 +1,16 @@
-// LevelingAdjust.cpp: implementation of the CLevelingAdjust class.
+ï»¿// LevelingAdjust.cpp: implementation of the CLevelingAdjust class.
 //
 //////////////////////////////////////////////////////////////////////
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <conio.h>
-#include <stdlib.h>
 #include <stdarg.h>
-
+#include <stdlib.h>
 
 #include "LevelingAdjust.h"
 #include "math.h"
-#include "string.h"
 #include "public.h"
+#include "string.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -19,681 +18,648 @@
 
 CLevelingAdjust::CLevelingAdjust()
 {
-	m_Lnumber=0;
-	m_Pnumber=0;
-	m_StablePnumber=0;
+    m_Lnumber = 0;
+    m_Pnumber = 0;
+    m_StablePnumber = 0;
 }
 
 CLevelingAdjust::~CLevelingAdjust()
 {
-	if(m_Lnumber>0)
-	{
-		delete []StartP;  
-		delete []EndP;    
-		delete []L;       
-		delete []P;       
-		delete []V;       
-	}
+    if (m_Lnumber > 0) {
+        delete[] StartP;
+        delete[] EndP;
+        delete[] L;
+        delete[] P;
+        delete[] V;
+    }
 
-	if(m_Pnumber>0)
-	{
-		delete []Height;   
-		delete []ATPA;     
-		delete []ATPL;     
-		delete []dX;       
-		
-		for(int i=0; i<m_Pnumber;i++)
-			if(Pname[i]!=NULL)delete[](Pname[i]);
-		delete []Pname;    
-	}
+    if (m_Pnumber > 0) {
+        delete[] Height;
+        delete[] ATPA;
+        delete[] ATPL;
+        delete[] dX;
 
+        for (int i = 0; i < m_Pnumber; i++)
+            if (Pname[i] != NULL)
+                delete[] (Pname[i]);
+        delete[] Pname;
+    }
 }
 
-
-
 //////////////////////////////////////////////////////////////////////////
-//   Ô­Ê¼Êı¾İÊäÈëº¯Êı
-void CLevelingAdjust::Inputdata(char *datafile)
+//   åŸå§‹æ•°æ®è¾“å…¥å‡½æ•°
+void CLevelingAdjust::Inputdata(char* datafile)
 {
-     FILE *fp;
-     if((fp=fopen(datafile,"r"))==NULL)
-     {	       
-		 MyBreak("\n Êı¾İÎÄ¼ş´ò²»¿ª!");  
-		 exit(0);
-	 }
+    FILE* fp;
+    if ((fp = fopen(datafile, "r")) == NULL) {
+        throw(std::string("æ•°æ®æ–‡ä»¶æ‰“ä¸å¼€!"));
+        // MyBreak("\n æ•°æ®æ–‡ä»¶æ‰“ä¸å¼€!");
+        //exit(0);
+    }
 
-     fscanf(fp,"%d%d%d",&m_Lnumber,&m_Pnumber,&m_knPnumber);
-     
-	 int unPnumber=m_Pnumber-m_knPnumber;
+    fscanf(fp, "%d%d%d", &m_Lnumber, &m_Pnumber, &m_knPnumber);
 
-     Height=new double [m_Pnumber];
-     dX=new double [m_Pnumber];
-     ATPA=new double [m_Pnumber*(m_Pnumber+1)/2];
-     ATPL=new double [m_Pnumber];
-     StartP=new int [m_Lnumber];
-     EndP=new int [m_Lnumber];
-     L=new double [m_Lnumber];
-     V=new double [m_Lnumber];
-     P=new double [m_Lnumber];
-     fscanf(fp,"%lf",&m_Sigma);
+    int unPnumber = m_Pnumber - m_knPnumber;
 
-     Pname=new char* [m_Pnumber]; 
-	 for(int i=0;i<m_Pnumber;i++)
-	 {
-		 // GetStationNumberº¯Êı¸ù¾İPname[i]ÊÇ·ñÎªNULL
-		 // È·¶¨Pname[i]ÊÇ·ñÎªµãÃûµØÖ·
-		 Pname[i] = NULL;
-	 }
+    Height = new double[m_Pnumber];
+    dX = new double[m_Pnumber];
+    ATPA = new double[m_Pnumber * (m_Pnumber + 1) / 2];
+    ATPL = new double[m_Pnumber];
+    StartP = new int[m_Lnumber];
+    EndP = new int[m_Lnumber];
+    L = new double[m_Lnumber];
+    V = new double[m_Lnumber];
+    P = new double[m_Lnumber];
+    fscanf(fp, "%lf", &m_Sigma);
 
-	 char buffer[100]; //ÁÙÊ±Êı×é£¬±£´æ´ÓÎÄ¼şÖĞ¶Áµ½µÄµãÃû	 
-	 
-	 //  ¶ÁÈ¡ÒÑÖª¸ß³ÌÊı¾İ
-	 for(int i=0;i<=m_knPnumber-1;i++)
-     {
-		   fscanf(fp,"%s",buffer);
-		   int c=GetStationNumber(buffer);
-		   
-		   fscanf(fp,"%lf",&Height[c]);
-     }
+    Pname = new char*[m_Pnumber];
+    for (int i = 0; i < m_Pnumber; i++) {
+        // GetStationNumberå‡½æ•°æ ¹æ®Pname[i]æ˜¯å¦ä¸ºNULL
+        // ç¡®å®šPname[i]æ˜¯å¦ä¸ºç‚¹ååœ°å€
+        Pname[i] = NULL;
+    }
 
-	 //  ¶ÁÈ¡¹Û²âÊı¾İ
-     for(int i=0;i<m_Lnumber;i++)
-     {
-		 fscanf(fp,"%s",buffer); //¶ÁÈ¡¸ß³ÌÆğµãÃû
-	 	 StartP[i]=GetStationNumber(buffer); 
-		 if(StartP[i]<0)
-		 {
-			 fprintf(resultfp,"\nÊı¾İÎÄ¼ş³ö´í£º");
-			 fprintf(resultfp,"\nµÚ%d¸ö¸ß²îµÄÆğÊ¼µãÃûÎª\"%s\"",i+1,buffer);
-			 fclose(resultfp);
-			 exit(0);
-		 }
-		 
-		 fscanf(fp,"%s",buffer);//¶ÁÈ¡¸ß³ÌÖÕµã
-		 EndP[i]=GetStationNumber(buffer);
+    char buffer[100]; // ä¸´æ—¶æ•°ç»„ï¼Œä¿å­˜ä»æ–‡ä»¶ä¸­è¯»åˆ°çš„ç‚¹å
 
-		 if(EndP[i]<0)
-		 {
-			 fprintf(resultfp,"\nÊı¾İÎÄ¼ş³ö´í£º");
-			 fprintf(resultfp,"\nµÚ%d¸ö¸ß²îÖÕµãµÄµãÃûÎª\"%s\"",i+1,buffer);
-			 fclose(resultfp);
-			 exit(0);
-		 }		 
-		 
-		 fscanf(fp,"%lf%lf",&L[i],&P[i]); //¶ÁÈ¡¸ß²îÖµÓëÂ·Ïß³¤¶È
-		 P[i]=1.0/P[i]; 
-     }
+    //  è¯»å–å·²çŸ¥é«˜ç¨‹æ•°æ®
+    for (int i = 0; i <= m_knPnumber - 1; i++) {
+        fscanf(fp, "%s", buffer);
+        int c = GetStationNumber(buffer);
 
-     fclose(fp);
+        fscanf(fp, "%lf", &Height[c]);
+    }
+
+    //  è¯»å–è§‚æµ‹æ•°æ®
+    for (int i = 0; i < m_Lnumber; i++) {
+        fscanf(fp, "%s", buffer); // è¯»å–é«˜ç¨‹èµ·ç‚¹å
+        StartP[i] = GetStationNumber(buffer);
+        if (StartP[i] < 0) {
+            fprintf(resultfp, "\næ•°æ®æ–‡ä»¶å‡ºé”™ï¼š");
+            fprintf(resultfp, "\nç¬¬%dä¸ªé«˜å·®çš„èµ·å§‹ç‚¹åä¸º\"%s\"", i + 1, buffer);
+            if (resultfp != nullptr) {
+                fclose(resultfp);
+            }
+            //exit(0);
+        }
+
+        fscanf(fp, "%s", buffer); // è¯»å–é«˜ç¨‹ç»ˆç‚¹
+        EndP[i] = GetStationNumber(buffer);
+
+        if (EndP[i] < 0) {
+            fprintf(resultfp, "\næ•°æ®æ–‡ä»¶å‡ºé”™ï¼š");
+            fprintf(resultfp, "\nç¬¬%dä¸ªé«˜å·®ç»ˆç‚¹çš„ç‚¹åä¸º\"%s\"", i + 1, buffer);
+            if (resultfp != nullptr) {
+                fclose(resultfp);
+            }
+            //exit(0);
+        }
+
+        fscanf(fp, "%lf%lf", &L[i], &P[i]); // è¯»å–é«˜å·®å€¼ä¸è·¯çº¿é•¿åº¦
+        P[i] = 1.0 / P[i];
+    }
+
+    if (resultfp != nullptr) {
+        fclose(resultfp);
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
-//   Ô­Ê¼Êı¾İĞ´µ½½á¹ûÎÄ¼ş
+//   åŸå§‹æ•°æ®å†™åˆ°ç»“æœæ–‡ä»¶
 void CLevelingAdjust::Printdata()
 {
-     int i;
-     fprintf(resultfp,"\n ¹Û²âÖµ×ÜÊı: %d  ×ÜµãÊı: %d  ÒÑÖªµãÊı£º%d \n",
-						m_Lnumber, m_Pnumber,m_knPnumber);
-     fprintf(resultfp,"\n ÑéÇ°µ¥Î»È¨ÖĞÎó²î£º%lf" ,m_Sigma);
-     fprintf(resultfp,"\n\n   ÒÑÖª¸ß³Ì:\n");
-     for(i=0;i<=m_knPnumber-1;i++)
-     {
-		   fprintf(resultfp,"\n%5d %8s  ",i+1,Pname[i]);
-		   fprintf(resultfp,"%10.4lf  ",Height[i]);
-      }
+    int i;
+    fprintf(resultfp, "\n è§‚æµ‹å€¼æ€»æ•°: %d  æ€»ç‚¹æ•°: %d  å·²çŸ¥ç‚¹æ•°ï¼š%d \n",
+        m_Lnumber, m_Pnumber, m_knPnumber);
+    fprintf(resultfp, "\n éªŒå‰å•ä½æƒä¸­è¯¯å·®ï¼š%lf", m_Sigma);
+    fprintf(resultfp, "\n\n   å·²çŸ¥é«˜ç¨‹:\n");
+    for (i = 0; i <= m_knPnumber - 1; i++) {
+        fprintf(resultfp, "\n%5d %8s  ", i + 1, Pname[i]);
+        fprintf(resultfp, "%10.4lf  ", Height[i]);
+    }
 
-     fprintf(resultfp,"\n\n   ¸ß²î¹Û²âÖµ:\n");
-     for(i=0;i<=m_Lnumber-1;i++)
-     {
-		   fprintf(resultfp,"\n%5d %8s %8s",i+1,Pname[StartP[i]],Pname[EndP[i]]);
-		   fprintf(resultfp,"%12.4lf %10.3lf",L[i],1.0/P[i]);
-     }
+    fprintf(resultfp, "\n\n   é«˜å·®è§‚æµ‹å€¼:\n");
+    for (i = 0; i <= m_Lnumber - 1; i++) {
+        fprintf(resultfp, "\n%5d %8s %8s", i + 1, Pname[StartP[i]], Pname[EndP[i]]);
+        fprintf(resultfp, "%12.4lf %10.3lf", L[i], 1.0 / P[i]);
+    }
 }
 
-
 //////////////////////////////////////////////////////////////////////////
-//	 µãÃû´æÖü£¬·µ»ØµãÃû¶ÔÓ¦µÄµãºÅ
-int  CLevelingAdjust::GetStationNumber(char *name)
+//	 ç‚¹åå­˜è´®ï¼Œè¿”å›ç‚¹åå¯¹åº”çš„ç‚¹å·
+int CLevelingAdjust::GetStationNumber(char* name)
 {
-    for(int i=0; i<m_Pnumber; i++) 
-	{
-		if(Pname[i]!=NULL)
-		{
-			//½«´ı²éµãÃûÓëÒÑ¾­´æÈëµãÃûÊı×éµÄµãÃû±È½Ï
-			if(strcmp(name,Pname[i])==0)return i;
-		}
-		else
-		{
-			//´ı²éµãÃûÊÇÒ»¸öĞÂµÄµãÃû£¬½«ĞÂµãÃûµÄµØÖ··Åµ½PnameÊı×éÖĞ
-			int len = strlen(name);
-			Pname[i] = new char[len+1];
-			strcpy(Pname[i], name);
-			return i;
-		}
-	}
+    for (int i = 0; i < m_Pnumber; i++) {
+        if (Pname[i] != NULL) {
+            // å°†å¾…æŸ¥ç‚¹åä¸å·²ç»å­˜å…¥ç‚¹åæ•°ç»„çš„ç‚¹åæ¯”è¾ƒ
+            if (strcmp(name, Pname[i]) == 0)
+                return i;
+        } else {
+            // å¾…æŸ¥ç‚¹åæ˜¯ä¸€ä¸ªæ–°çš„ç‚¹åï¼Œå°†æ–°ç‚¹åçš„åœ°å€æ”¾åˆ°Pnameæ•°ç»„ä¸­
+            int len = strlen(name);
+            Pname[i] = new char[len + 1];
+            strcpy(Pname[i], name);
+            return i;
+        }
+    }
+    return -1; // Pnameæ•°ç»„å·²ç»å­˜æ»¡ï¼Œä¸”æ²¡æœ‰å¾…æŸ¥ç‚¹å
+}
 
-	return -1;  //PnameÊı×éÒÑ¾­´æÂú£¬ÇÒÃ»ÓĞ´ı²éµãÃû
-    
-}                                          
-
-
-
-
-                                           
 //////////////////////////////////////////////////////////////////////////
-//	      ¸ß³Ì½üËÆÖµ¼ÆËã
+//	      é«˜ç¨‹è¿‘ä¼¼å€¼è®¡ç®—
 void CLevelingAdjust::ca_H0()
 {
-     for(int i=m_knPnumber;i<m_Pnumber;i++)Height[i]=-9999.9;
-     
-	 int jj=0; //¼ÆËã³ö½üËÆ¸ß³ÌµÄµãÊı
-	 for(int ii=1;;ii++)
-     {
-		 for(int i=0;i<m_Lnumber;i++)
-		 {
-			 int k1=StartP[i];  //¸ß²îÆğµãºÅ
-			 int k2=EndP[i];    //¸ß²îÖÕµãºÅ
-			 if(Height[k1]>-9999.0 && Height[k2]<-9999.0)
-			 {
-				 Height[k2]=Height[k1]+L[i];
-				 jj++;
-			 }
-			 else if(Height[k1]<-9999.0 && Height[k2]>-9999.0)
-			 {
-				 Height[k1]=Height[k2]-L[i];
-				 jj++;
-			 }
-		 } 
-	       
-		 if(jj==(m_Pnumber-m_knPnumber))break;
-	     if(ii>(m_Pnumber-m_knPnumber))
-	     {
-			 fprintf(resultfp,"\n\nÏÂÁĞµãÎŞ·¨¼ÆËã³ö¸ÅÂÔ¸ß³Ì:\n");
-	    	 for(int i=0;i<m_Pnumber;i++)
-			 {
-				 if(Height[i]<-9999.0)
-				 {
-					 printf("\n%s",Pname[i]);
-				 }
-			 }
-			 MyBreak("½üËÆ¸ß³Ì¼ÆËãÊ§°Ü£¡");
-			 fclose(resultfp);
-			 exit(0);
-	     }
-     } 
+    for (int i = m_knPnumber; i < m_Pnumber; i++)
+        Height[i] = -9999.9;
+
+    int jj = 0; // è®¡ç®—å‡ºè¿‘ä¼¼é«˜ç¨‹çš„ç‚¹æ•°
+    for (int ii = 1;; ii++) {
+        for (int i = 0; i < m_Lnumber; i++) {
+            int k1 = StartP[i]; // é«˜å·®èµ·ç‚¹å·
+            int k2 = EndP[i]; // é«˜å·®ç»ˆç‚¹å·
+            if (Height[k1] > -9999.0 && Height[k2] < -9999.0) {
+                Height[k2] = Height[k1] + L[i];
+                jj++;
+            } else if (Height[k1] < -9999.0 && Height[k2] > -9999.0) {
+                Height[k1] = Height[k2] - L[i];
+                jj++;
+            }
+        }
+
+        if (jj == (m_Pnumber - m_knPnumber))
+            break;
+        if (ii > (m_Pnumber - m_knPnumber)) {
+            fprintf(resultfp, "\n\nä¸‹åˆ—ç‚¹æ— æ³•è®¡ç®—å‡ºæ¦‚ç•¥é«˜ç¨‹:\n");
+            for (int i = 0; i < m_Pnumber; i++) {
+                if (Height[i] < -9999.0) {
+                    printf("\n%s", Pname[i]);
+                }
+            }
+            throw(std::string("è¿‘ä¼¼é«˜ç¨‹è®¡ç®—å¤±è´¥ï¼"));
+            // MyBreak("è¿‘ä¼¼é«˜ç¨‹è®¡ç®—å¤±è´¥ï¼");
+            if (resultfp != nullptr) {
+                fclose(resultfp);
+            }
+            //exit(0);
+        }
+    }
 }
 
-
 //////////////////////////////////////////////////////////////////////////
-//  ×é³É·¨·½³Ì
+//  ç»„æˆæ³•æ–¹ç¨‹
 void CLevelingAdjust::ca_ATPA()
 {
-    int t=m_Pnumber;
+    int t = m_Pnumber;
 
-    for(int i=0; i<t*(t+1)/2; i++) ATPA[i]=0.0;
-    for(int i=0; i<t; i++) ATPL[i]=0.0;
-    
-	for(int k=0; k<m_Lnumber; k++)
-    {
-       	int i=StartP[k];
-		int j=EndP[k];
-       	double Pk=P[k];
-       	double Lk=L[k]-(Height[j]-Height[i]);
+    for (int i = 0; i < t * (t + 1) / 2; i++)
+        ATPA[i] = 0.0;
+    for (int i = 0; i < t; i++)
+        ATPL[i] = 0.0;
 
-       	ATPL[i]-=Pk*Lk;
-	    ATPL[j]+=Pk*Lk;
-		ATPA[ij(i,i)]+=Pk;
-	    ATPA[ij(j,j)]+=Pk;
-	    ATPA[ij(i,j)]-=Pk;
-     }
+    for (int k = 0; k < m_Lnumber; k++) {
+        int i = StartP[k];
+        int j = EndP[k];
+        double Pk = P[k];
+        double Lk = L[k] - (Height[j] - Height[i]);
+
+        ATPL[i] -= Pk * Lk;
+        ATPL[j] += Pk * Lk;
+        ATPA[ij(i, i)] += Pk;
+        ATPA[ij(j, j)] += Pk;
+        ATPA[ij(i, j)] -= Pk;
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
-//    ¸ß³ÌÆ½²îÖµ¼ÆËã
+//    é«˜ç¨‹å¹³å·®å€¼è®¡ç®—
 void CLevelingAdjust::ca_dX()
 {
-     if(!inverse(ATPA,m_Pnumber))
-     {
-          MyBreak("\n·¨·½³ÌÏµÊı¾ØÕó½µÖÈ!");
-		  fclose(resultfp);
-		  exit(0);
-     }
+    if (!inverse(ATPA, m_Pnumber)) {
+        throw(std::string("æ³•æ–¹ç¨‹ç³»æ•°çŸ©é˜µé™ç§©!"));
+        // MyBreak("\næ³•æ–¹ç¨‹ç³»æ•°çŸ©é˜µé™ç§©!");
+        if (resultfp != nullptr) {
+            fclose(resultfp);
+        }
+        //exit(0);
+    }
 
-     for(int i=0; i<m_Pnumber; i++)
-     {
-		 double xi=0.0;
-	     for(int j=0; j<m_Pnumber; j++)
-		 {
-			 xi+=ATPA[ij(i,j)]*ATPL[j];
-		 }
-	     dX[i]=xi;
-		 Height[i]+=xi;
-     }
+    for (int i = 0; i < m_Pnumber; i++) {
+        double xi = 0.0;
+        for (int j = 0; j < m_Pnumber; j++) {
+            xi += ATPA[ij(i, j)] * ATPL[j];
+        }
+        dX[i] = xi;
+        Height[i] += xi;
+    }
 }
 
-
 //////////////////////////////////////////////////////////////////////////
-//   ²Ğ²î¼ÆËã
-double  CLevelingAdjust::ca_V()
+//   æ®‹å·®è®¡ç®—
+double CLevelingAdjust::ca_V()
 {
-	double pvv=0.0;
-	for(int i=0;i<=m_Lnumber-1;i++)
-	{
-		 int k1=StartP[i];
-		 int k2=EndP[i];
-		 V[i]=Height[k2]-Height[k1]-L[i];
-		 pvv+=V[i]*V[i]*P[i];
-	}
-	return(pvv);
+    double pvv = 0.0;
+    for (int i = 0; i <= m_Lnumber - 1; i++) {
+        int k1 = StartP[i];
+        int k2 = EndP[i];
+        V[i] = Height[k2] - Height[k1] - L[i];
+        pvv += V[i] * V[i] * P[i];
+    }
+    return (pvv);
 }
 
 //////////////////////////////////////////////////////////////////////////
-//   Æ½²îÖµÊä³ö
-void  CLevelingAdjust::PrintResult()
+//   å¹³å·®å€¼è¾“å‡º
+void CLevelingAdjust::PrintResult()
 {
-	fprintf(resultfp,"\n\n           ==== ¸ß³ÌÆ½²îÖµ¼°Æä¾«¶È ====\n");
-	fprintf(resultfp,"\n    µãÃû   ½üËÆ¸ß³Ì   ¸ÄÕıÊı   ¸ß³ÌÆ½²îÖµ  ÖĞÎó²î\n");
-	for(int i=0; i<m_Pnumber; i++)
-	{
-		fprintf(resultfp,"\n %5s ",Pname[i]);
-	    double dx=dX[i];
-	    double qii=ATPA[ij(i,i)];
-	    fprintf(resultfp,"%12.4lf%9.4lf%12.4lf%9.4lf",
-					  Height[i]-dx,dx,Height[i],sqrt(qii)*m_mu);
-	}
-	fprintf(resultfp,"\n\n\n              ==== ¹Û²âÖµÆ½²îÖµ¼°Æä¾«¶È ====\n");
-	fprintf(resultfp,"\n   No. Æğ µã  ÖÕ µã  ¹Û²â¸ß²î    £ö");
-	fprintf(resultfp,"     ¸ß²îÆ½²îÖµ   ¹Û²âÈ¨   ÖĞÎó²î\n");
+    fprintf(resultfp, "\n\n           ==== é«˜ç¨‹å¹³å·®å€¼åŠå…¶ç²¾åº¦ ====\n");
+    fprintf(resultfp, "\n    ç‚¹å   è¿‘ä¼¼é«˜ç¨‹   æ”¹æ­£æ•°   é«˜ç¨‹å¹³å·®å€¼  ä¸­è¯¯å·®\n");
+    for (int i = 0; i < m_Pnumber; i++) {
+        fprintf(resultfp, "\n %5s ", Pname[i]);
+        double dx = dX[i];
+        double qii = ATPA[ij(i, i)];
+        fprintf(resultfp, "%12.4lf%9.4lf%12.4lf%9.4lf",
+            Height[i] - dx, dx, Height[i], sqrt(qii) * m_mu);
+    }
+    fprintf(resultfp, "\n\n\n              ==== è§‚æµ‹å€¼å¹³å·®å€¼åŠå…¶ç²¾åº¦ ====\n");
+    fprintf(resultfp, "\n   No. èµ· ç‚¹  ç»ˆ ç‚¹  è§‚æµ‹é«˜å·®    ï½–");
+    fprintf(resultfp, "     é«˜å·®å¹³å·®å€¼   è§‚æµ‹æƒ   ä¸­è¯¯å·®\n");
 
-	for(int i=0;i<=m_Lnumber-1;i++)
-	{
-		int k1=StartP[i];
-	    int k2=EndP[i];
-	    double qii=ATPA[ij(k1,k1)];
-	    double qjj= ATPA[ij(k2,k2)] ;
-	    double qij=ATPA[ij(k1,k2)];
-	    double ml=sqrt(qii+qjj-2.0*qij)*m_mu;
-	    fprintf(resultfp,"\n%5d %5s%5s ",i+1,Pname[k1],Pname[k2]);
-	    fprintf(resultfp,"%12.4lf %8.4lf%11.4lf%9.2lf%10.4lf",
-				  L[i],V[i],L[i]+V[i],P[i],ml);
-	}
+    for (int i = 0; i <= m_Lnumber - 1; i++) {
+        int k1 = StartP[i];
+        int k2 = EndP[i];
+        double qii = ATPA[ij(k1, k1)];
+        double qjj = ATPA[ij(k2, k2)];
+        double qij = ATPA[ij(k1, k2)];
+        double ml = sqrt(qii + qjj - 2.0 * qij) * m_mu;
+        fprintf(resultfp, "\n%5d %5s%5s ", i + 1, Pname[k1], Pname[k2]);
+        fprintf(resultfp, "%12.4lf %8.4lf%11.4lf%9.2lf%10.4lf",
+            L[i], V[i], L[i] + V[i], P[i], ml);
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
-//    Ë®×¼Íø×îĞ¡¶ş³ËÆ½²î
-void  CLevelingAdjust::LS_Adjustment()
+//    æ°´å‡†ç½‘æœ€å°äºŒä¹˜å¹³å·®
+void CLevelingAdjust::LS_Adjustment()
 {
-	ca_H0(); //½üËÆ¸ß³Ì¼ÆËã
-	ca_ATPA(); // ×é³É·¨·½³Ì
-	
-	//´¦ÀíÒÑÖªµã
-	for(int i=0;i<m_knPnumber;i++) ATPA[ij(i,i)]=1.0e30;
-	
-	ca_dX(); // ¸ß³ÌÆ½²îÖµ¼ÆËã
-	double pvv=ca_V();  // ²Ğ²î¼ÆËã
-	m_pvv = pvv;
-	
-	m_mu=sqrt(pvv/(m_Lnumber-(m_Pnumber-m_knPnumber)));
-	/*fprintf(resultfp,"\n\n  ×îĞ¡¶ş³ËÆ½²î½á¹û£º\n    [pvv]=%-12.8lf",pvv);
-	fprintf(resultfp,"\n       ¦Ì=¡À%lf",m_mu);*/
+    ca_H0(); // è¿‘ä¼¼é«˜ç¨‹è®¡ç®—
+    ca_ATPA(); // ç»„æˆæ³•æ–¹ç¨‹
 
-	//PrintResult();
-	return ;
+    // å¤„ç†å·²çŸ¥ç‚¹
+    for (int i = 0; i < m_knPnumber; i++)
+        ATPA[ij(i, i)] = 1.0e30;
+
+    ca_dX(); // é«˜ç¨‹å¹³å·®å€¼è®¡ç®—
+    double pvv = ca_V(); // æ®‹å·®è®¡ç®—
+    m_pvv = pvv;
+
+    m_mu = sqrt(pvv / (m_Lnumber - (m_Pnumber - m_knPnumber)));
+    /*fprintf(resultfp,"\n\n  æœ€å°äºŒä¹˜å¹³å·®ç»“æœï¼š\n    [pvv]=%-12.8lf",pvv);
+    fprintf(resultfp,"\n       Î¼=Â±%lf",m_mu);*/
+
+    // PrintResult();
+    return;
 }
 
 //////////////////////////////////////////////////////////////////////////
-//       Ë®×¼Íø£­×ÔÓÉÍøÆ½²î
+//       æ°´å‡†ç½‘ï¼è‡ªç”±ç½‘å¹³å·®
 void CLevelingAdjust::FreeNetAdjust()
 {
-	ca_ATPA(); //×é³É·¨·½³Ì
-	
-	int tt=m_Pnumber*(m_Pnumber+1)/2;
-	for(int i=0; i<tt; i++)	ATPA[i]+=1.0/m_Pnumber;  
+    ca_ATPA(); // ç»„æˆæ³•æ–¹ç¨‹
 
-	ca_dX();
+    int tt = m_Pnumber * (m_Pnumber + 1) / 2;
+    for (int i = 0; i < tt; i++)
+        ATPA[i] += 1.0 / m_Pnumber;
 
-	for(int i=0;  i<tt; i++) ATPA[i]-=1.0/m_Pnumber; 
-	
-	double pvv = ca_V();
-	fprintf(resultfp,"\n    [pvv]=%-12.8lf",pvv);
-	m_mu= sqrt(pvv/(m_Lnumber-(m_Pnumber-1)));
-	fprintf(resultfp,"\n       ¦Ì=¡À%lf",m_mu);
-	
-	PrintResult();
-	
-	PrintM2(resultfp,ATPA,m_Pnumber,4,"%15e ","Qx");	
-} 
+    ca_dX();
 
+    for (int i = 0; i < tt; i++)
+        ATPA[i] -= 1.0 / m_Pnumber;
 
+    double pvv = ca_V();
+    fprintf(resultfp, "\n    [pvv]=%-12.8lf", pvv);
+    m_mu = sqrt(pvv / (m_Lnumber - (m_Pnumber - 1)));
+    fprintf(resultfp, "\n       Î¼=Â±%lf", m_mu);
 
-//////////////////////////////////////////////////////////////////////////
-//       Ë®×¼ÍøÄâÎÈÆ½²î
-//       2008£­07£­16
-void CLevelingAdjust::Quasi_Stable(char *file) //fileÊÇÄâÎÈµãÃûÎÄ¼ş
-{
-	//´ò¿ªÎÄ¼ş£¬»ñÈ¡ÄâÎÈµãÃû
-	FILE *fp=fopen(file,"r");
-	if(fp==NULL)
-	{
-		MyBreak("ÄâÎÈµãÎÄ¼ş´ò²»¿ª£¡");
-		fclose(resultfp);
-		exit(0);
-	}
-	
-	fscanf(fp,"%d",&m_StablePnumber);
-	if(m_StablePnumber>m_Pnumber || m_StablePnumber<1)
-	{
-		MyBreak("ÄâÎÈµãÊı´íÎó!");
-		fclose(resultfp);
-		exit(0);		
-	}
+    PrintResult();
 
-	IsStable=new int[m_Pnumber];
-	
-	for(int i=0;i<=m_Pnumber-1;i++) IsStable[i]=false;
-		
-	fprintf(resultfp,"\n%s\n","\n   ÄâÎÈµã£º");
-	for(int i=0;i<=m_StablePnumber-1;i++)
-	{
-		char name[100];
-		fscanf(fp,"%s",name);
-		int k=GetStationNumber(name);
-		if(k<0)
-		{
-			fprintf(resultfp,"\nÄâÎÈµãÃûÎÄ¼ş³ö´í£º");
-			fprintf(resultfp,"\n³öÏÖÁËÊı¾İÎÄ¼şÖĞÃ»ÓĞµÄµãÃû£º%s",name);
-			fclose(resultfp);
-			exit(0);			
-		}
-		IsStable[k] = 1;
-		fprintf(resultfp,"\n%10s ",Pname[k]);
-	}
-	fclose(fp);
-
-	ca_ATPA();
-	for(int i=0;i<m_Pnumber;i++)
-	{
-		for(int j=0;j<=i;j++)
-			if(IsStable[i] && IsStable[j] )
-				ATPA[ij(i,j)]+=1.0/m_StablePnumber;
-	}
-	
-	ca_dX();
-	
-	for(int i=0;i<m_Pnumber;i++)
-	{
-		for(int j=0;j<=i;j++)
-			ATPA[ij(i,j)]-=1.0/m_StablePnumber;
-	}
-
-	double pvv = ca_V();
-	m_mu= sqrt(pvv/(m_Lnumber-(m_Pnumber-1)));
-	
-	fprintf(resultfp,"\n    [pvv]=%-12.8lf",pvv);
-	fprintf(resultfp,"\n    µ¥Î»È¨ÖĞÎó²î:   m=%lf",m_mu);
-	
-	PrintResult();
-	PrintM2(resultfp,ATPA,m_Pnumber,4,"%15e ","Qx");		
+    PrintM2(resultfp, ATPA, m_Pnumber, 4, "%15e ", "Qx");
 }
 
-
-	
 //////////////////////////////////////////////////////////////////////////
-//	Â·Ïß±ÕºÏ²î¼ÆËã	£¬·µ»ØÂ·ÏßÊı×é×Ö·û´®Êı×é(Â·ÏßÖĞµãÃûÖ®¼ä¿Õ¸ñ¸ô¿ªÈç£ºA B D)£¬±ÕºÏ²îÊı×é£¬ºÍÏŞ²îÊı×é
+//       æ°´å‡†ç½‘æ‹Ÿç¨³å¹³å·®
+//       2008ï¼07ï¼16
+void CLevelingAdjust::Quasi_Stable(char* file) // fileæ˜¯æ‹Ÿç¨³ç‚¹åæ–‡ä»¶
+{
+    // æ‰“å¼€æ–‡ä»¶ï¼Œè·å–æ‹Ÿç¨³ç‚¹å
+    FILE* fp = fopen(file, "r");
+    if (fp == NULL) {
+        throw(std::string("æ‹Ÿç¨³ç‚¹æ–‡ä»¶æ‰“ä¸å¼€ï¼"));
+        // MyBreak("æ‹Ÿç¨³ç‚¹æ–‡ä»¶æ‰“ä¸å¼€ï¼");
+        if (resultfp != nullptr) {
+            fclose(resultfp);
+        }
+        //exit(0);
+    }
+
+    fscanf(fp, "%d", &m_StablePnumber);
+    if (m_StablePnumber > m_Pnumber || m_StablePnumber < 1) {
+        throw(std::string("æ‹Ÿç¨³ç‚¹æ•°é”™è¯¯!"));
+        // MyBreak("æ‹Ÿç¨³ç‚¹æ•°é”™è¯¯!");
+        if (resultfp != nullptr) {
+            if (resultfp != nullptr) {
+                fclose(resultfp);
+            }
+        }
+        //exit(0);
+    }
+
+    IsStable = new int[m_Pnumber];
+
+    for (int i = 0; i <= m_Pnumber - 1; i++)
+        IsStable[i] = false;
+
+    fprintf(resultfp, "\n%s\n", "\n   æ‹Ÿç¨³ç‚¹ï¼š");
+    for (int i = 0; i <= m_StablePnumber - 1; i++) {
+        char name[100];
+        fscanf(fp, "%s", name);
+        int k = GetStationNumber(name);
+        if (k < 0) {
+            fprintf(resultfp, "\næ‹Ÿç¨³ç‚¹åæ–‡ä»¶å‡ºé”™ï¼š");
+            fprintf(resultfp, "\nå‡ºç°äº†æ•°æ®æ–‡ä»¶ä¸­æ²¡æœ‰çš„ç‚¹åï¼š%s", name);
+            if (resultfp != nullptr) {
+                fclose(resultfp);
+            }
+            //exit(0);
+        }
+        IsStable[k] = 1;
+        fprintf(resultfp, "\n%10s ", Pname[k]);
+    }
+    fclose(fp);
+
+    ca_ATPA();
+    for (int i = 0; i < m_Pnumber; i++) {
+        for (int j = 0; j <= i; j++)
+            if (IsStable[i] && IsStable[j])
+                ATPA[ij(i, j)] += 1.0 / m_StablePnumber;
+    }
+
+    ca_dX();
+
+    for (int i = 0; i < m_Pnumber; i++) {
+        for (int j = 0; j <= i; j++)
+            ATPA[ij(i, j)] -= 1.0 / m_StablePnumber;
+    }
+
+    double pvv = ca_V();
+    m_mu = sqrt(pvv / (m_Lnumber - (m_Pnumber - 1)));
+
+    fprintf(resultfp, "\n    [pvv]=%-12.8lf", pvv);
+    fprintf(resultfp, "\n    å•ä½æƒä¸­è¯¯å·®:   m=%lf", m_mu);
+
+    PrintResult();
+    PrintM2(resultfp, ATPA, m_Pnumber, 4, "%15e ", "Qx");
+}
+
+//////////////////////////////////////////////////////////////////////////
+//	è·¯çº¿é—­åˆå·®è®¡ç®—	ï¼Œè¿”å›è·¯çº¿æ•°ç»„å­—ç¬¦ä¸²æ•°ç»„(è·¯çº¿ä¸­ç‚¹åä¹‹é—´ç©ºæ ¼éš”å¼€å¦‚ï¼šA B D)ï¼Œé—­åˆå·®æ•°ç»„ï¼Œå’Œé™å·®æ•°ç»„
 int CLevelingAdjust::LineClosure(std::vector<std::string>& line_name, std::vector<double>& line_L, std::vector<double>& line_w, std::vector<double>& line_limit)
 {
-	if(m_knPnumber<2)return 0; // ÒÑÖªµãÊıĞ¡ÓÚ2
+    if (m_knPnumber < 2)
+        return 0; // å·²çŸ¥ç‚¹æ•°å°äº2
 
-	//fprintf(resultfp,"\n\n  === Â·Ïß±ÕºÏ²î¼ÆËã === ");
-				
-	int *neighbor=new int[m_Pnumber];       //ÁÚ½ÓµãÊı×é
-	double *diff=new double[m_Pnumber]; //¸ß²îÀÛ¼ÓÖµÊı×é
-	double *S=new double[m_Pnumber];    //Â·Ïß³¤ÀÛ¼ÓÖµÊı×é
-		
-	for(int i=0; i<m_knPnumber-1; i++)
-	{
-		FindShortPath(i,-1,neighbor,diff,S); //ËÑË÷×î¶ÌÂ·Ïß£¬ÓÃËùÓĞ¹Û²âÖµ
-		
-		for(int j=i+1;j<m_knPnumber;j++)
-		{
-			if(neighbor[j]<0)
-			{
-				//fprintf(resultfp,"%s-%sÖ®¼äÕÒµ½²»µ½×î¶ÌÂ·Ïß",	Pname[i],Pname[j]);
-				continue;
-			}
+    // fprintf(resultfp,"\n\n  === è·¯çº¿é—­åˆå·®è®¡ç®— === ");
 
-			// Êä³ö¸½ºÏÂ·ÏßÉÏµÄµãºÅ
-			//fprintf(resultfp,"\n    ¸½ºÏÂ·Ïß£º");
-			std::string tempname("");
-			int k=j;
-			while(1)
-			{
-				//fprintf(resultfp,"%s - ",Pname[k]);
-				tempname = tempname + " " + Pname[k];
-				k=neighbor[k];
-				if(k==i)break;
-			}
-			//fprintf(resultfp,"%s ",Pname[i]);
-			tempname = tempname + " " + Pname[k];
+    int* neighbor = new int[m_Pnumber]; // é‚»æ¥ç‚¹æ•°ç»„
+    double* diff = new double[m_Pnumber]; // é«˜å·®ç´¯åŠ å€¼æ•°ç»„
+    double* S = new double[m_Pnumber]; // è·¯çº¿é•¿ç´¯åŠ å€¼æ•°ç»„
 
-			// ±ÕºÏ²î¼ÆËã£¬ÏŞ²î¼ÆËãÓëÊä³ö
-			double W=Height[i]+diff[j]-Height[j]; // ±ÕºÏ²î
-			double limit=2.0*sqrt(S[j])*m_Sigma;  // ÏŞ²î
-			W = -W;
-			line_name.push_back(tempname);
-			line_L.push_back(S[j]);
-			line_w.push_back(W);
-			line_limit.push_back(limit);
-			
-			//fprintf(resultfp,"\n      W=%7.3lf  (ÏŞ²î:%7.3lf) ",
-			//	-W,limit); // ÒòÎªÊä³öµÄµãºÅÊÇ·´ÏòµÄ£¬ËùÒÔ±ÕºÏ²îÎª¸ººÅ
-		}
-	}
+    for (int i = 0; i < m_knPnumber - 1; i++) {
+        FindShortPath(i, -1, neighbor, diff, S); // æœç´¢æœ€çŸ­è·¯çº¿ï¼Œç”¨æ‰€æœ‰è§‚æµ‹å€¼
 
-	delete []neighbor;
-	delete []S;
-	delete []diff;
-	return 1;
+        for (int j = i + 1; j < m_knPnumber; j++) {
+            if (neighbor[j] < 0) {
+                // fprintf(resultfp,"%s-%sä¹‹é—´æ‰¾åˆ°ä¸åˆ°æœ€çŸ­è·¯çº¿",	Pname[i],Pname[j]);
+                continue;
+            }
+
+            // è¾“å‡ºé™„åˆè·¯çº¿ä¸Šçš„ç‚¹å·
+            // fprintf(resultfp,"\n    é™„åˆè·¯çº¿ï¼š");
+            std::string tempname("");
+            int k = j;
+            while (1) {
+                // fprintf(resultfp,"%s - ",Pname[k]);
+                tempname = tempname + " " + Pname[k];
+                k = neighbor[k];
+                if (k == i)
+                    break;
+            }
+            // fprintf(resultfp,"%s ",Pname[i]);
+            tempname = tempname + " " + Pname[k];
+
+            // é—­åˆå·®è®¡ç®—ï¼Œé™å·®è®¡ç®—ä¸è¾“å‡º
+            double W = Height[i] + diff[j] - Height[j]; // é—­åˆå·®
+            double limit = 2.0 * sqrt(S[j]) * m_Sigma; // é™å·®
+            W = -W;
+            line_name.push_back(tempname);
+            line_L.push_back(S[j]);
+            line_w.push_back(W);
+            line_limit.push_back(limit);
+
+            // fprintf(resultfp,"\n      W=%7.3lf  (é™å·®:%7.3lf) ",
+            //	-W,limit); // å› ä¸ºè¾“å‡ºçš„ç‚¹å·æ˜¯åå‘çš„ï¼Œæ‰€ä»¥é—­åˆå·®ä¸ºè´Ÿå·
+        }
+    }
+
+    delete[] neighbor;
+    delete[] S;
+    delete[] diff;
+    return 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
-//  ËÑË÷×î¶ÌÂ·¾¶
-void CLevelingAdjust::FindShortPath(int p,int exclude,int neighbor[],
-									double diff[],double S[])
+//  æœç´¢æœ€çŸ­è·¯å¾„
+void CLevelingAdjust::FindShortPath(int p, int exclude, int neighbor[],
+    double diff[], double S[])
 {
-	for(int i=0; i<m_Pnumber; i++) 
-	{
-		neighbor[i]=-1;  // »¹Ã»ÓĞÁÚ½Óµã
-		S[i]=1.0e30;
-	}
-	S[p]=0.0;
-	diff[p]=0.0;
-	neighbor[p]=p;
-	
-	for(int i=0;;i++)
-	{
-		bool successful=true; 
-		for(int j=0;j<=m_Lnumber-1;j++)
-		{
-			if(j==exclude) continue;
-			int p1=StartP[j];
-			int p2=EndP[j];
-			double S12=1.0/P[j];
-			if(neighbor[p1]<0 && neighbor[p2]<0) continue;
-			
-			if(S[p2]>S[p1]+S12)
-			{
-				neighbor[p2]=p1;
-				S[p2]=S[p1]+S12;
-				diff[p2]=diff[p1]+L[j];
-				successful=false;
-			}
-			else if(S[p1]>S[p2]+S12)
-			{
-				neighbor[p1]=p2;
-				S[p1]=S[p2]+S12;
-				diff[p1]=diff[p2]-L[j];
-				successful = false;
-			}
-		}
-		if(successful)break;
-	}
+    for (int i = 0; i < m_Pnumber; i++) {
+        neighbor[i] = -1; // è¿˜æ²¡æœ‰é‚»æ¥ç‚¹
+        S[i] = 1.0e30;
+    }
+    S[p] = 0.0;
+    diff[p] = 0.0;
+    neighbor[p] = p;
 
-	return ;
+    for (int i = 0;; i++) {
+        bool successful = true;
+        for (int j = 0; j <= m_Lnumber - 1; j++) {
+            if (j == exclude)
+                continue;
+            int p1 = StartP[j];
+            int p2 = EndP[j];
+            double S12 = 1.0 / P[j];
+            if (neighbor[p1] < 0 && neighbor[p2] < 0)
+                continue;
+
+            if (S[p2] > S[p1] + S12) {
+                neighbor[p2] = p1;
+                S[p2] = S[p1] + S12;
+                diff[p2] = diff[p1] + L[j];
+                successful = false;
+            } else if (S[p1] > S[p2] + S12) {
+                neighbor[p1] = p2;
+                S[p1] = S[p2] + S12;
+                diff[p1] = diff[p2] - L[j];
+                successful = false;
+            }
+        }
+        if (successful)
+            break;
+    }
+
+    return;
 }
 
-
-
-
 //////////////////////////////////////////////////////////////////////////
-//	»·±ÕºÏ²î¼ÆËã	
+//	ç¯é—­åˆå·®è®¡ç®—
 int CLevelingAdjust::LoopClosure(std::vector<std::string>& loop_name, std::vector<double>& loop_L, std::vector<double>& loop_w, std::vector<double>& loop_limit)
-{		
-	//fprintf(resultfp,"\n\n  === »·±ÕºÏ²î¼ÆËã === ");
+{
+    // fprintf(resultfp,"\n\n  === ç¯é—­åˆå·®è®¡ç®— === ");
 
-	int num=m_Lnumber-(m_Pnumber-1);
-	if(num<1)
-	{
-		//fprintf(resultfp,"\n    ÎŞ±ÕºÏ»·\n\n");		
-		return 0;
-	}
-	
-	int *neighbor=new int[m_Pnumber]; //ÁÚ½ÓµãÊı×é
-	int *used=new int[m_Lnumber]; //¹Û²âÖµÊÇ·ñÒÑ¾­ÓÃÓÚ±ÕºÏ²î¼ÆËã
-	double *diff=new double[m_Pnumber]; //¸ß²îÀÛ¼ÓÖµÊı×é
-	double *S=new double[m_Pnumber];	//Â·Ïß³¤Êı×é
-	
-	for(int i=0; i<=m_Lnumber-1; i++) used[i]=0;
+    int num = m_Lnumber - (m_Pnumber - 1);
+    if (num < 1) {
+        // fprintf(resultfp,"\n    æ— é—­åˆç¯\n\n");
+        return 0;
+    }
 
-	for(int i=0; i<m_Lnumber; i++)
-	{
-		int k1=StartP[i];
-		int k2=EndP[i];
-		if(used[i]) continue;
+    int* neighbor = new int[m_Pnumber]; // é‚»æ¥ç‚¹æ•°ç»„
+    int* used = new int[m_Lnumber]; // è§‚æµ‹å€¼æ˜¯å¦å·²ç»ç”¨äºé—­åˆå·®è®¡ç®—
+    double* diff = new double[m_Pnumber]; // é«˜å·®ç´¯åŠ å€¼æ•°ç»„
+    double* S = new double[m_Pnumber]; // è·¯çº¿é•¿æ•°ç»„
 
-		FindShortPath(k2,i,neighbor,diff,S);//ËÑË÷×î¶ÌÂ·Ïß£¬µÚiºÅ¹Û²âÖµ²»ÄÜ²Î¼Ó
-		
-		if(neighbor[k1]<0)
-		{
-			/*fprintf(resultfp,"\n¹Û²âÖµ%s - %sÓëÈÎºÎ¹Û²â±ß²»¹¹³É±ÕºÏ»·",
-				Pname[k1],Pname[k2]);*/
-		}
-		else
-		{
-			used[i]=1;
-			//fprintf(resultfp,"\n   »·±ÕºÏ²î£º ");
-			std::string loname("");
-			int p1=k1;
-			while(1)//Êä³öµãÃû
-			{
-				int p2=neighbor[p1];
-				//fprintf(resultfp,"%s - ",Pname[p1]);
-				loname = loname + " " + Pname[p1];
-				for(int r=0;r<m_Lnumber;r++)//½«ÓÃ¹ıµÄ¹Û²âÖµ±ê¶¨
-				{
-					if(StartP[r]==p1 && EndP[r]==p2)
-					{
-						used[r]=1;
-						break;
-					}
-					else if(StartP[r]==p2 && EndP[r]==p1)
-					{
-						used[r]=1;
-						break;
-					}
-				}
-				if(p2==k2)break;
-				else p1=p2;
-			}
-			//fprintf(resultfp,"%s - %s  ",Pname[k2],Pname[k1]);
-			loname = loname + " " + Pname[k2] + " " + Pname[k1];
+    for (int i = 0; i <= m_Lnumber - 1; i++)
+        used[i] = 0;
 
-			double W=L[i]+diff[k1];   //±ÕºÏ²î
-			double SS=S[k1]+1.0/P[i]; //»·³¤
-			double limit = 2.0 * sqrt(SS) * m_Sigma;//ÏŞ²î
-			W = -W;
-			loop_name.push_back(loname);
-			loop_L.push_back(SS);
-			loop_w.push_back(W);
-			loop_limit.push_back(limit);
-			/*fprintf(resultfp,"\n     W=%7.4lf  (ÏŞ²î:%7.4lf) ",
-				-W,2.0*sqrt(SS)*m_Sigma);*/
-		}
-	}
+    for (int i = 0; i < m_Lnumber; i++) {
+        int k1 = StartP[i];
+        int k2 = EndP[i];
+        if (used[i])
+            continue;
 
-	delete []neighbor;
-	delete []used;
-	delete []diff;
-	delete []S;		
-	return 1;
-} 
+        FindShortPath(k2, i, neighbor, diff, S); // æœç´¢æœ€çŸ­è·¯çº¿ï¼Œç¬¬iå·è§‚æµ‹å€¼ä¸èƒ½å‚åŠ 
 
+        if (neighbor[k1] < 0) {
+            /*fprintf(resultfp,"\nè§‚æµ‹å€¼%s - %sä¸ä»»ä½•è§‚æµ‹è¾¹ä¸æ„æˆé—­åˆç¯",
+                    Pname[k1],Pname[k2]);*/
+        } else {
+            used[i] = 1;
+            // fprintf(resultfp,"\n   ç¯é—­åˆå·®ï¼š ");
+            std::string loname("");
+            int p1 = k1;
+            while (1) // è¾“å‡ºç‚¹å
+            {
+                int p2 = neighbor[p1];
+                // fprintf(resultfp,"%s - ",Pname[p1]);
+                loname = loname + " " + Pname[p1];
+                for (int r = 0; r < m_Lnumber; r++) // å°†ç”¨è¿‡çš„è§‚æµ‹å€¼æ ‡å®š
+                {
+                    if (StartP[r] == p1 && EndP[r] == p2) {
+                        used[r] = 1;
+                        break;
+                    } else if (StartP[r] == p2 && EndP[r] == p1) {
+                        used[r] = 1;
+                        break;
+                    }
+                }
+                if (p2 == k2)
+                    break;
+                else
+                    p1 = p2;
+            }
+            // fprintf(resultfp,"%s - %s  ",Pname[k2],Pname[k1]);
+            loname = loname + " " + Pname[k2] + " " + Pname[k1];
+
+            double W = L[i] + diff[k1]; // é—­åˆå·®
+            double SS = S[k1] + 1.0 / P[i]; // ç¯é•¿
+            double limit = 2.0 * sqrt(SS) * m_Sigma; // é™å·®
+            W = -W;
+            loop_name.push_back(loname);
+            loop_L.push_back(SS);
+            loop_w.push_back(W);
+            loop_limit.push_back(limit);
+            /*fprintf(resultfp,"\n     W=%7.4lf  (é™å·®:%7.4lf) ",
+                    -W,2.0*sqrt(SS)*m_Sigma);*/
+        }
+    }
+
+    delete[] neighbor;
+    delete[] used;
+    delete[] diff;
+    delete[] S;
+    return 1;
+}
 
 #include "Probability.h"
 //////////////////////////////////////////////////////////////////////////
-//   Ë®×¼Íø´Ö²îÌ½²â
+//   æ°´å‡†ç½‘ç²—å·®æ¢æµ‹
 void CLevelingAdjust::DataSnooping(double arfa)
 {
-	CProbability pp;
-	double U=pp.re_norm(1.0-arfa/2.0);
-	
-	ca_H0(); //½üËÆ¸ß³Ì¼ÆËã	
+    CProbability pp;
+    double U = pp.re_norm(1.0 - arfa / 2.0);
 
-	double pvv;
-	int k;
-    for(k=0; ; k++)
-	{
-		 ca_ATPA(); // ×é³É·¨·½³Ì
-		 
-		 //´¦ÀíÒÑÖªµã
-	     for(int i=0;i<m_knPnumber;i++) ATPA[ij(i,i)]=1.0e30;
-	
-	     ca_dX(); // ¸ß³ÌÆ½²îÖµ¼ÆËã
-	     pvv=ca_V(); // ²Ğ²î¼ÆËã
+    ca_H0(); // è¿‘ä¼¼é«˜ç¨‹è®¡ç®—
 
-		 double max_v=0.0;
-		 int    max_i;
-		 for(int i=0;i<=m_Lnumber-1;i++)
-		 {
-			 if(P[i]<1.0e-10) continue;
-			 int k1=StartP[i];
-			 int k2=EndP[i];
-			 double qii=ATPA[ij(k1,k1)];
-			 double qjj= ATPA[ij(k2,k2)] ;
-			 double qij=ATPA[ij(k1,k2)];
-			 
-			 double qv=1.0/P[i]-(qii+qjj-2.0*qij);
-			 double mv=sqrt(qv)*m_Sigma;
+    double pvv;
+    int k;
+    for (k = 0;; k++) {
+        ca_ATPA(); // ç»„æˆæ³•æ–¹ç¨‹
 
-			 double vi=V[i]/mv;
+        // å¤„ç†å·²çŸ¥ç‚¹
+        for (int i = 0; i < m_knPnumber; i++)
+            ATPA[ij(i, i)] = 1.0e30;
 
-			 if(fabs(vi) > max_v )
-			 {
-				 max_v=fabs(vi);
-				 max_i=i;
-			 }
-		 }
+        ca_dX(); // é«˜ç¨‹å¹³å·®å€¼è®¡ç®—
+        pvv = ca_V(); // æ®‹å·®è®¡ç®—
 
-		 if(max_v>U)P[max_i]=0.0;
-		 else break;
-	} 
+        double max_v = 0.0;
+        int max_i;
+        for (int i = 0; i <= m_Lnumber - 1; i++) {
+            if (P[i] < 1.0e-10)
+                continue;
+            int k1 = StartP[i];
+            int k2 = EndP[i];
+            double qii = ATPA[ij(k1, k1)];
+            double qjj = ATPA[ij(k2, k2)];
+            double qij = ATPA[ij(k1, k2)];
 
-	if(k>0)
-	{
-		fprintf(resultfp,"\n´Ö²î×ÜÊı£º%d \n´Ö²î¹ÀÖµ£º",k);
-		for(int i=0;i<=m_Lnumber-1;i++)
-		{
-			if(P[i]>1.0e-10) continue;
-			fprintf(resultfp,"\n  %2d %8s %8s  %12.4lf ",
-				i+1,Pname[StartP[i]],Pname[EndP[i]],V[i]);
-		}	
-	}
-	else fprintf(resultfp,"\n´Ö²îÌ½²âÎ´·¢ÏÖ´Ö²î\n");
-	
-	m_mu= sqrt(pvv/(m_Lnumber-k-(m_Pnumber-m_knPnumber)));
-	fprintf(resultfp,"\n       ¦Ì=¡À%lf",m_mu);
+            double qv = 1.0 / P[i] - (qii + qjj - 2.0 * qij);
+            double mv = sqrt(qv) * m_Sigma;
 
-	PrintResult();
+            double vi = V[i] / mv;
 
+            if (fabs(vi) > max_v) {
+                max_v = fabs(vi);
+                max_i = i;
+            }
+        }
+
+        if (max_v > U)
+            P[max_i] = 0.0;
+        else
+            break;
+    }
+
+    if (k > 0) {
+        fprintf(resultfp, "\nç²—å·®æ€»æ•°ï¼š%d \nç²—å·®ä¼°å€¼ï¼š", k);
+        for (int i = 0; i <= m_Lnumber - 1; i++) {
+            if (P[i] > 1.0e-10)
+                continue;
+            fprintf(resultfp, "\n  %2d %8s %8s  %12.4lf ",
+                i + 1, Pname[StartP[i]], Pname[EndP[i]], V[i]);
+        }
+    } else
+        fprintf(resultfp, "\nç²—å·®æ¢æµ‹æœªå‘ç°ç²—å·®\n");
+
+    m_mu = sqrt(pvv / (m_Lnumber - k - (m_Pnumber - m_knPnumber)));
+    fprintf(resultfp, "\n       Î¼=Â±%lf", m_mu);
+
+    PrintResult();
 }
-

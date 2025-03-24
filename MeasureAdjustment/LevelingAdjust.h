@@ -1,4 +1,4 @@
-// LevelingAdjust.h: interface for the CLevelingAdjust class.
+ï»¿// LevelingAdjust.h: interface for the CLevelingAdjust class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -9,85 +9,60 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-
 #include "pch.h"
 
 #include "stdio.h"
 #include <string>
 #include <vector>
 
-class CLevelingAdjust  
-{
+class CLevelingAdjust {
 public:
-	CLevelingAdjust();
-	virtual ~CLevelingAdjust();
+    CLevelingAdjust();
+    virtual ~CLevelingAdjust();
 
-	int m_Lnumber;      //¸ß²î×ÜÊı
-	int m_Pnumber;      //×ÜµãÊı
-	int m_knPnumber;    //ÒÑÖªµãÊı
-	int m_StablePnumber; //ÄâÎÈµãÊı
-	double m_pvv;        //[pvv]
-	FILE   *resultfp;    //ÎÄ¼şÖ¸Õë,Êä³ö¼ÆËã½á¹û
+    int m_Lnumber = 0; // é«˜å·®æ€»æ•°
+    int m_Pnumber = 0; // æ€»ç‚¹æ•°
+    int m_knPnumber = 0; // å·²çŸ¥ç‚¹æ•°
+    int m_StablePnumber = 0; // æ‹Ÿç¨³ç‚¹æ•°
+    double m_pvv = 0.0; //[pvv]
+    FILE* resultfp = nullptr; // æ–‡ä»¶æŒ‡é’ˆ,è¾“å‡ºè®¡ç®—ç»“æœ
 
-	double  m_Sigma;  //ÑéÇ°µ¥Î»È¨ÖĞÎó²î£¨´Ö²îÌ½²â¡¢ ±ÕºÏ²î¼ÆËãÓÃ£©ÔÚ´Ö²îÌ½²â¡¢±ÕºÏ²îÖĞÒ»°ãÎª0.001£¬ÔÚÆäËûÔËËãÈç×îĞ¡¶ş³ËÒ»°ãÎª0.005
-	double  Alhpa;     // ÏÔÖøË®Æ½£¨´Ö²îÌ½²â³ÌĞòÓÃ£©
-	
-	int *StartP;     //¸ß²îÆğµãºÅ
-	int *EndP;       //¸ß²îÖÕµãºÅ
-	char   **Pname;   //µãÃûµØÖ·Êı×é
-	double  *L;       //¹Û²âÖµÊı×é
-	double  *Height;  //¸ß³ÌÖµÊı×é
-	double  *P;       //¹Û²âÖµµÄÈ¨
+    double m_Sigma = 0.0; // éªŒå‰å•ä½æƒä¸­è¯¯å·®ï¼ˆç²—å·®æ¢æµ‹ã€ é—­åˆå·®è®¡ç®—ç”¨ï¼‰åœ¨ç²—å·®æ¢æµ‹ã€é—­åˆå·®ä¸­ä¸€èˆ¬ä¸º0.001ï¼Œåœ¨å…¶ä»–è¿ç®—å¦‚æœ€å°äºŒä¹˜ä¸€èˆ¬ä¸º0.005
+    double Alhpa = 0.0; // æ˜¾è‘—æ°´å¹³ï¼ˆç²—å·®æ¢æµ‹ç¨‹åºç”¨ï¼‰
 
-	double  *ATPA,*ATPL; //·¨·½³ÌÏµÊı¾ØÕóÓë×ÔÓÉÏî
-	double  *dX;      //²ÎÊıÆ½²îÖµ£¨¸ß³Ì¸ÄÕıÊı£©   
-	double  *V;       //²Ğ²îÊı×é
-	double  m_mu;      //Ñéºóµ¥Î»È¨ÖĞÎó²î
-	
-	int *IsStable; //ÊÇ·ñÎªÄâÎÈµãºÅ
-		
-	void   Inputdata(char *datafile);//ÊäÈëÔ­Ê¼Êı¾İº¯Êı
-	void   Printdata(); //Êä³öÔ­Ê¼Êı¾İº¯Êı
-	int    GetStationNumber(char *name); //»ñÈ¡µãºÅº¯Êı
-	void   ca_H0();       //½üËÆ¸ß³Ì¼ÆËãº¯Êı
-	void   ca_ATPA();  //·¨·½³Ì×é³Éº¯Êı
-	void   ca_dX();    //Æ½²îÖµ¼ÆËãº¯Êı
-	void   PrintResult();  //¾«¶È¹À¼ÆÓëÆ½²îÖµÊä³öº¯Êı
-	double ca_V();     //²Ğ²î¼ÆËãº¯Êı	
+    int* StartP = nullptr; // é«˜å·®èµ·ç‚¹å·
+    int* EndP = nullptr; // é«˜å·®ç»ˆç‚¹å·
+    char** Pname = nullptr; // ç‚¹ååœ°å€æ•°ç»„
+    double* L = nullptr; // è§‚æµ‹å€¼æ•°ç»„
+    double* Height = nullptr; // é«˜ç¨‹å€¼æ•°ç»„
+    double* P = nullptr; // è§‚æµ‹å€¼çš„æƒ
 
-    void   LS_Adjustment();//×îĞ¡¶ş³ËÆ½²îº¯Êı
-	void   Quasi_Stable( char *file);//ÄâÎÈÆ½²îº¯Êı
-    void   FreeNetAdjust();//×ÔÓÉÍøÆ½²îº¯Êı
-		
-	void  FindShortPath(int p1,int exclude, int root[],
-						  double diff[],double S[]);    //×î¶ÌÂ·ÏßËÑË÷
-	int  LineClosure(std::vector<std::string>& line_name, std::vector<double>& line_L, std::vector<double>& line_w, std::vector<double>& line_limit); // Â·Ïß±ÕºÏ²î¼ÆËã
-	int  LoopClosure(std::vector<std::string>& loop_name, std::vector<double>& loop_L, std::vector<double>& loop_w, std::vector<double>& loop_limit); //»·±ÕºÏ²î¼ÆËã
-	
+    double *ATPA = nullptr, *ATPL = nullptr; // æ³•æ–¹ç¨‹ç³»æ•°çŸ©é˜µä¸è‡ªç”±é¡¹
+    double* dX = nullptr; // å‚æ•°å¹³å·®å€¼ï¼ˆé«˜ç¨‹æ”¹æ­£æ•°ï¼‰
+    double* V = nullptr; // æ®‹å·®æ•°ç»„
+    double m_mu = 0.0; // éªŒåå•ä½æƒä¸­è¯¯å·®
 
-	void DataSnooping(double arfa);//´Ö²îÌ½²â
-		
+    int* IsStable = nullptr; // æ˜¯å¦ä¸ºæ‹Ÿç¨³ç‚¹å·
+
+    void Inputdata(char* datafile); // è¾“å…¥åŸå§‹æ•°æ®å‡½æ•°
+    void Printdata(); // è¾“å‡ºåŸå§‹æ•°æ®å‡½æ•°
+    int GetStationNumber(char* name); // è·å–ç‚¹å·å‡½æ•°
+    void ca_H0(); // è¿‘ä¼¼é«˜ç¨‹è®¡ç®—å‡½æ•°
+    void ca_ATPA(); // æ³•æ–¹ç¨‹ç»„æˆå‡½æ•°
+    void ca_dX(); // å¹³å·®å€¼è®¡ç®—å‡½æ•°
+    void PrintResult(); // ç²¾åº¦ä¼°è®¡ä¸å¹³å·®å€¼è¾“å‡ºå‡½æ•°
+    double ca_V(); // æ®‹å·®è®¡ç®—å‡½æ•°
+
+    void LS_Adjustment(); // æœ€å°äºŒä¹˜å¹³å·®å‡½æ•°
+    void Quasi_Stable(char* file); // æ‹Ÿç¨³å¹³å·®å‡½æ•°
+    void FreeNetAdjust(); // è‡ªç”±ç½‘å¹³å·®å‡½æ•°
+
+    void FindShortPath(int p1, int exclude, int root[],
+        double diff[], double S[]); // æœ€çŸ­è·¯çº¿æœç´¢
+    int LineClosure(std::vector<std::string>& line_name, std::vector<double>& line_L, std::vector<double>& line_w, std::vector<double>& line_limit); // è·¯çº¿é—­åˆå·®è®¡ç®—
+    int LoopClosure(std::vector<std::string>& loop_name, std::vector<double>& loop_L, std::vector<double>& loop_w, std::vector<double>& loop_limit); // ç¯é—­åˆå·®è®¡ç®—
+
+    void DataSnooping(double arfa); // ç²—å·®æ¢æµ‹
 };
 
 #endif // !defined(AFX_LEVELINGADJUST_H__553D83A6_1E43_4AB0_9C3E_8007847A4AA0__INCLUDED_)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
