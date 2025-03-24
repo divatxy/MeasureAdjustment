@@ -467,6 +467,7 @@ int CPlaneNetAdjust::cal_xy1()
             // 公共点找出后进行四参数求解，之后进行坐标转换
             double dx, dy, scale, ro;
             calculateTransformationParameters(n_common, srcP, dstP, dx, dy, scale, ro);
+
             for (size_t j = dir0[i]; j < dir0[i + 1]; j++) // 对本组每个点进行转换（同时对测站进行转换）
             {
                 int k2 = dir2[j]; // 本组照准点号

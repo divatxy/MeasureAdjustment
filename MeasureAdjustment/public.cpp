@@ -334,6 +334,10 @@ FourPara LS_PLCC(const std::vector<XYPoint>& source, const std::vector<XYPoint>&
             n_mx = i;
         }
     }
+    if (source.size() < n_mx + 1 && target.size() < n_mx + 1) {
+        throw std::string("公共点转换失败");
+    }
+
     double dX1 = source[n_mx].x - source[0].x;
     double dY1 = source[n_mx].y - source[0].y;
     double dX2 = target[n_mx].x - target[0].x;

@@ -11,6 +11,7 @@
 
 #include <Eigen/Dense>
 #include <conio.h>
+#include <iostream>
 #include <math.h>
 #include <optional>
 #include <stdarg.h>
@@ -30,9 +31,9 @@ public:
     int m_Tnumber = 0; // 方位角观测值个数
     int m_Snumber = 0; // 边长观测值个数
 
-    int* dir1 = 0; // 测站点号
-    int* dir2 = 0; // 观测方向的点号
-    int* dir0 = 0; // 测站零方向在方向值数组中的位置
+    int* dir1 = nullptr; // 测站点号
+    int* dir2 = nullptr; // 观测方向的点号
+    int* dir0 = nullptr; // 测站零方向在方向值数组中的位置
 
     char** Pname = nullptr; // 点名地址数组
 

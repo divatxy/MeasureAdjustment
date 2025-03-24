@@ -74,13 +74,13 @@
     <TargetExt>.dll</TargetExt>
     <TargetName>$(ProjectName)-x64d</TargetName>
     <IncludePath>D:\Program Files\PCL 1.14.1\3rdParty\Eigen3\include\eigen3;$(IncludePath)</IncludePath>
-    <PublicIncludeDirectories>;..\MeasureAdjustment</PublicIncludeDirectories>
+    <PublicIncludeDirectories>..\MeasureAdjustment</PublicIncludeDirectories>
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
     <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>D:\Program Files\PCL 1.14.1\3rdParty\Eigen3\include\eigen3;$(IncludePath)</IncludePath>
-    <PublicIncludeDirectories>..\MeasureAdjustment;..\MeasureAdjustment</PublicIncludeDirectories>
+    <PublicIncludeDirectories>..\MeasureAdjustment</PublicIncludeDirectories>
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
     <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
   </PropertyGroup>
